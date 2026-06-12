@@ -14,29 +14,29 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 ## 데이터셋
 
 - 출처: [WM-811K (Kaggle)](https://www.kaggle.com/datasets/qingyi/wm811k-wafer-map)
-- 전체 811,457개 중 라벨링된 172,950개 사용
-- 학습: None(정상) 데이터만 사용
-- 테스트: 정상 + 불량 패턴 전체 사용
+- 전체 811,457개 중 라벨링된 데이터 사용
+- 학습: None(정상) 데이터 10,000개 사용
+- 테스트: 불량 패턴 전체 25,519개 사용
 
 ### 클래스별 데이터 분포
 
 | 클래스 | 데이터 수 | 비율 | 용도 |
 |--------|-----------|------|------|
-| None | 147,431 | 85.25% | 학습 + 테스트 |
-| Edge-Ring | 9,682 | 5.60% | 테스트만 |
-| Edge-Loc | 5,199 | 3.00% | 테스트만 |
-| Center | 4,296 | 2.48% | 테스트만 |
-| Loc | 3,597 | 2.08% | 테스트만 |
-| Scratch | 1,194 | 0.69% | 테스트만 |
-| Random | 866 | 0.50% | 테스트만 |
-| Donut | 555 | 0.32% | 테스트만 |
-| Near-Full | 149 | 0.09% | 테스트만 |
+| None | 785,938 | - | 학습 (10,000개 샘플링) |
+| Edge-Ring | 9,680 | - | 테스트만 |
+| Edge-Loc | 5,189 | - | 테스트만 |
+| Center | 4,294 | - | 테스트만 |
+| Loc | 3,593 | - | 테스트만 |
+| Scratch | 1,193 | - | 테스트만 |
+| Random | 866 | - | 테스트만 |
+| Donut | 555 | - | 테스트만 |
+| Near-full | 149 | - | 테스트만 |
 
 ### 데이터 분할
 
-- Train : Validation : Test = 6 : 2 : 2
-- Train, Validation: None(정상) 데이터만 사용
-- Test: 정상 + 불량 전체 사용
+- Train: None(정상) 10,000개
+- Validation: Train의 20% (2,000개)
+- Test: 불량 전체 25,519개 + 정상 2,000개
 
 ## 전처리 비교 실험
 
@@ -46,13 +46,13 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 |------|------------|------|
 | Exp-A | Baseline | 리사이즈 + 정규화만 |
 | Exp-B | CLAHE | 적응형 히스토그램 평활화로 대비 강화 |
-| Exp-C | 이진화 (Binary) | 픽셀값 임계값 기준으로 흑백 변환 |
-| Exp-D | Canny Edge | 엣지 검출로 불량 경계선 강조 |
+| Exp-C | Canny Edge | 엣지 검출로 불량 경계선 강조 |
+| Exp-D | 이진화 (Binary) | 픽셀값 임계값 기준으로 흑백 변환 |
 
 ### 공통 전처리
 
 - 리사이즈: 64×64
-- 정규화: mean=[0.5], std=[0.5]
+- 정규화: 픽셀값 0~1 스케일링
 
 ## 모델 및 실험 설계
 
@@ -61,8 +61,9 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 | Exp-A | AutoEncoder | Baseline | 기준선 |
 | Exp-B | AutoEncoder | CLAHE | 전처리 효과 확인 |
 | Exp-C | AutoEncoder | Canny Edge | 전처리 효과 확인 |
-| Exp-D | PatchCore (ResNet18) | Baseline | 모델 비교 |
-| Exp-E | PatchCore (ResNet18) | CLAHE | 핵심 실험 |
+| Exp-D | AutoEncoder | Binary | 전처리 효과 확인 |
+| Exp-E | PatchCore (ResNet18) | Baseline | 모델 비교 |
+| Exp-F | PatchCore (ResNet18) | CLAHE | 핵심 실험 |
 
 ### AutoEncoder 구조
 
@@ -92,15 +93,17 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 
 ## 성능 평가
 
-| 실험 | 모델 | 전처리 | AUROC | Inference Time |
-|------|------|--------|-------|----------------|
-| Exp-A | AutoEncoder | Baseline | - | - |
-| Exp-B | AutoEncoder | CLAHE | - | - |
-| Exp-C | AutoEncoder | Canny Edge | - | - |
-| Exp-D | PatchCore | Baseline | - | - |
-| Exp-E | PatchCore | CLAHE | - | - |
+| 실험 | 모델 | 전처리 | AUROC |
+|------|------|--------|-------|
+| Exp-A | AutoEncoder | Baseline | 0.8050 |
+| Exp-B | AutoEncoder | CLAHE | 0.8010 |
+| Exp-C | AutoEncoder | Canny Edge | 0.6434 |
+| Exp-D | AutoEncoder | Binary | 0.6862 |
+| Exp-E | PatchCore | Baseline | 0.9508 |
+| Exp-F | PatchCore | CLAHE | **0.9567** |
 
 > 주요 지표: AUROC (임계값에 독립적인 이상탐지 평가 지표)
+> PatchCore + CLAHE 조합이 가장 높은 성능 달성 (AUROC 0.9567)
 
 ## 프로젝트 구조
 
@@ -112,11 +115,25 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
     │   ├── preprocess.py
     │   ├── model.py
     │   ├── train.py
-    │   └── evaluate.py
-    ├── notebooks/
-    │   └── experiment.ipynb
+    │   ├── evaluate.py
+    │   └── patchcore.py
     ├── logs/
+    │   ├── train_baseline.log
+    │   ├── train_clahe.log
+    │   ├── train_edge.log
+    │   └── train_binary.log
     ├── checkpoints/
+    │   ├── best_baseline.pth
+    │   ├── best_clahe.pth
+    │   ├── best_edge.pth
+    │   └── best_binary.pth
+    ├── results/
+    │   ├── error_dist_baseline.png
+    │   ├── error_dist_clahe.png
+    │   ├── error_dist_edge.png
+    │   ├── error_dist_binary.png
+    │   ├── patchcore_dist_baseline.png
+    │   └── patchcore_dist_clahe.png
     └── README.md
 
 ## 실행 방법
@@ -124,21 +141,22 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
     # 환경 설정 (AWS EC2)
     conda create -n anomaly_env python=3.10 -y
     conda activate anomaly_env
-    pip install torch torchvision numpy pandas matplotlib scikit-learn tqdm opencv-python
+    pip install torch torchvision numpy pandas matplotlib scikit-learn tqdm opencv-python kaggle
 
     # 데이터 다운로드
     kaggle datasets download -d qingyi/wm811k-wafer-map
+    unzip wm811k-wafer-map.zip -d data/
 
-    # 학습 (AutoEncoder)
-    python src/train.py --model autoencoder --preprocess baseline
-    python src/train.py --model autoencoder --preprocess clahe
+    # AutoEncoder 학습
+    nohup python src/train.py --preprocess baseline --epochs 30 --batch_size 64 --lr 1e-3 > logs/train_baseline.log 2>&1 &
+    nohup python src/train.py --preprocess clahe --epochs 30 --batch_size 64 --lr 1e-3 > logs/train_clahe.log 2>&1 &
 
-    # 학습 (PatchCore)
-    python src/train.py --model patchcore --preprocess baseline
+    # AutoEncoder 평가
+    python src/evaluate.py --data_path data/LSWMD.pkl --checkpoint checkpoints/best_baseline.pth --preprocess baseline
 
-    # 백그라운드 학습
-    nohup python src/train.py --model autoencoder --preprocess clahe > logs/train.log 2>&1 &
-    tail -f logs/train.log
+    # PatchCore 실행
+    python src/patchcore.py --preprocess baseline
+    python src/patchcore.py --preprocess clahe
 
 ## 개발 환경
 
@@ -154,11 +172,11 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 | 단계 | 내용 | 상태 |
 |------|------|------|
 | 1 | 주제 선정 및 데이터셋 확보 | ✅ 완료 |
-| 2 | 데이터 구조 파악 및 전처리 구현 | 🔲 예정 |
-| 3 | AutoEncoder 학습 (Baseline) | 🔲 예정 |
-| 4 | 전처리 방법별 비교 실험 | 🔲 예정 |
-| 5 | PatchCore 구현 및 비교 실험 | 🔲 예정 |
-| 6 | 결과 시각화 및 최종 정리 | 🔲 예정 |
+| 2 | 데이터 구조 파악 및 전처리 구현 | ✅ 완료 |
+| 3 | AutoEncoder 학습 (Baseline) | ✅ 완료 |
+| 4 | 전처리 방법별 비교 실험 | ✅ 완료 |
+| 5 | PatchCore 구현 및 비교 실험 | ✅ 완료 |
+| 6 | 결과 시각화 및 최종 정리 | ✅ 완료 |
 
 ## 참고 자료
 
