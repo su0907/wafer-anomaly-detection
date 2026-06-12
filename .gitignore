@@ -1,0 +1,4 @@
+data/LSWMD.pkl
+data/wm811k-wafer-map.zip
+src/__pycache__/
+*.pyc
