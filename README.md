@@ -5,15 +5,29 @@
 ![Dataset](https://img.shields.io/badge/Dataset-WM--811K-green)
 ![Task](https://img.shields.io/badge/Task-Anomaly%20Detection-orange)
 
-## 프로젝트 개요
+---
+
+## 프로젝트 정보
+
+| 항목 | 내용 |
+|------|------|
+| 데이터셋 | WM-811K (Kaggle) |
+| 프레임워크 | PyTorch 2.x |
+| 학습 환경 | AWS EC2 g4dn.xlarge (NVIDIA T4 GPU) |
+| GitHub | https://github.com/su0907/wafer-anomaly-detection |
+| 소속 | 인하공업전문대학 컴퓨터정보공학과 |
+
+---
+
+## 1. 프로젝트 개요
 
 WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이퍼와 불량 웨이퍼를 탐지하는 이상탐지 모델을 구현합니다.
 정상 데이터만으로 학습하여 불량 패턴을 탐지하는 비지도 이상탐지 방식을 채택하며,
 전처리 방법(CLAHE, 이진화, Canny Edge)과 모델(AutoEncoder, PatchCore)에 따른 성능 변화를 비교 실험합니다.
 
-- GitHub: [wafer-anomaly-detection](https://github.com/su0907/wafer-anomaly-detection)
+---
 
-## 데이터셋
+## 2. 데이터셋
 
 - 출처: [WM-811K (Kaggle)](https://www.kaggle.com/datasets/qingyi/wm811k-wafer-map)
 - 전체 811,457개 중 라벨링된 데이터 사용
@@ -40,7 +54,9 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 - Validation: Train의 20% (2,000개)
 - Test: 불량 전체 25,519개 + 정상 2,000개
 
-## 전처리 비교 실험
+---
+
+## 3. 전처리 비교 실험
 
 웨이퍼 이미지 특성에 맞는 전처리 방법을 비교하여 이상탐지 성능에 미치는 영향을 분석합니다.
 
@@ -56,16 +72,18 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 - 리사이즈: 64×64
 - 정규화: 픽셀값 0~1 스케일링
 
-## 모델 및 실험 설계
+---
 
-| 실험 | 모델 | 전처리 | 비고 |
-|------|------|--------|------|
-| Exp-A | AutoEncoder | Baseline | 기준선 |
-| Exp-B | AutoEncoder | CLAHE | 전처리 효과 확인 |
-| Exp-C | AutoEncoder | Canny Edge | 전처리 효과 확인 |
-| Exp-D | AutoEncoder | Binary | 전처리 효과 확인 |
-| Exp-E | PatchCore (ResNet18) | Baseline | 모델 비교 |
-| Exp-F | PatchCore (ResNet18) | CLAHE | 핵심 실험 |
+## 4. 모델 및 실험 설계
+
+| 실험 | 모델 | 전처리 | Pretrained | 비고 |
+|------|------|--------|------------|------|
+| Exp-A | AutoEncoder | Baseline | X (Scratch) | 기준선 |
+| Exp-B | AutoEncoder | CLAHE | X (Scratch) | 전처리 효과 확인 |
+| Exp-C | AutoEncoder | Canny Edge | X (Scratch) | 전처리 효과 확인 |
+| Exp-D | AutoEncoder | Binary | X (Scratch) | 전처리 효과 확인 |
+| Exp-E | PatchCore (ResNet18) | Baseline | O (ImageNet) | 모델 비교 |
+| Exp-F | PatchCore (ResNet18) | CLAHE | O (ImageNet) | 핵심 실험 |
 
 ### AutoEncoder 구조
 
@@ -93,7 +111,16 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
         ↓
     Anomaly Score → 정상/이상 판단
 
-## 성능 평가
+---
+
+## 5. 성능 평가
+
+### 성능 측정 기준
+
+- **AUROC**: 임계값에 독립적인 이상탐지 평가 지표, 1에 가까울수록 우수
+- **Inference Time**: 이미지 1장당 모델 추론 시간 (ms), 100회 평균값
+
+### 성능 비교 결과
 
 | 실험 | 모델 | 전처리 | AUROC | Inference Time |
 |------|------|--------|-------|----------------|
@@ -124,18 +151,38 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 ![Baseline](results/error_dist_baseline.png)
 ![PatchCore CLAHE](results/patchcore_dist_clahe.png)
 
-## 프로젝트 구조
+---
+
+## 6. 학습 로그 (AutoEncoder Baseline)
+
+| Epoch | Train Loss | Val Loss |
+|-------|-----------|---------|
+| 1 | 0.0179 | 0.0068 |
+| 2 | 0.0059 | 0.0050 |
+| 3 | 0.0045 | 0.0041 |
+| 5 | 0.0035 | 0.0034 |
+| 10 | 0.0024 | 0.0025 |
+| 15 | 0.0020 | 0.0021 |
+| 20 | 0.0018 | 0.0018 |
+| 25 | 0.0016 | 0.0017 |
+| 30 | 0.0015 | 0.0017 |
+
+> 전체 로그는 GitHub logs/ 폴더 참고
+
+---
+
+## 7. 코드 구조
 
     wafer-anomaly-detection/
     ├── data/
     │   └── LSWMD.pkl
     ├── src/
-    │   ├── dataset.py
-    │   ├── preprocess.py
-    │   ├── model.py
-    │   ├── train.py
-    │   ├── evaluate.py
-    │   └── patchcore.py
+    │   ├── dataset.py       # 데이터 로드, train/val/test 분할
+    │   ├── preprocess.py    # CLAHE, Canny Edge, Binary 전처리
+    │   ├── model.py         # ConvAutoEncoder 모델 구조
+    │   ├── train.py         # 학습 루프, loss 로그 저장
+    │   ├── evaluate.py      # AUROC 계산, 오차 분포 시각화
+    │   └── patchcore.py     # PatchCore 구현
     ├── logs/
     │   ├── train_baseline.log
     │   ├── train_clahe.log
@@ -156,7 +203,9 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
     │   └── patchcore_dist_clahe.png
     └── README.md
 
-## 실행 방법
+---
+
+## 8. 실행 방법
 
     # 환경 설정 (AWS EC2)
     conda create -n anomaly_env python=3.10 -y
@@ -178,7 +227,9 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
     python src/patchcore.py --preprocess baseline
     python src/patchcore.py --preprocess clahe
 
-## 개발 환경
+---
+
+## 9. 개발 환경
 
 | 항목 | 내용 |
 |------|------|
@@ -187,7 +238,9 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 | 학습 환경 | AWS EC2 (g4dn.xlarge, T4 GPU) |
 | 버전 관리 | Git / GitHub |
 
-## 진행 계획
+---
+
+## 10. 진행 계획
 
 | 단계 | 내용 | 상태 |
 |------|------|------|
@@ -198,7 +251,9 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 | 5 | PatchCore 구현 및 비교 실험 | ✅ 완료 |
 | 6 | 결과 시각화 및 최종 정리 | ✅ 완료 |
 
-## 참고 자료
+---
+
+## 11. 참고 자료
 
 - [WM-811K Dataset (Kaggle)](https://www.kaggle.com/datasets/qingyi/wm811k-wafer-map)
 - [PyTorch 공식 문서](https://pytorch.org/docs/stable/index.html)
