@@ -144,12 +144,12 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 
 ### 학습 Loss 커브
 
-![Loss Curves](results/loss_curves.png)
+<img src="results/loss_curves.png" width="700">
 
 ### 재구성 오차 분포
 
-![Baseline](results/error_dist_baseline.png)
-![PatchCore CLAHE](results/patchcore_dist_clahe.png)
+<img src="results/error_dist_baseline.png" width="700">
+<img src="results/patchcore_dist_clahe.png" width="700">
 
 ---
 
