@@ -95,22 +95,25 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 
 ## 성능 평가
 
-| 실험 | 모델 | 전처리 | AUROC |
-|------|------|--------|-------|
-| Exp-A | AutoEncoder | Baseline | 0.8050 |
-| Exp-B | AutoEncoder | CLAHE | 0.8010 |
-| Exp-C | AutoEncoder | Canny Edge | 0.6434 |
-| Exp-D | AutoEncoder | Binary | 0.6862 |
-| Exp-E | PatchCore | Baseline | 0.9508 |
-| Exp-F | PatchCore | CLAHE | **0.9567** |
+| 실험 | 모델 | 전처리 | AUROC | Inference Time |
+|------|------|--------|-------|----------------|
+| Exp-A | AutoEncoder | Baseline | 0.8050 | 0.67 ms |
+| Exp-B | AutoEncoder | CLAHE | 0.8010 | 0.67 ms |
+| Exp-C | AutoEncoder | Canny Edge | 0.6434 | 0.67 ms |
+| Exp-D | AutoEncoder | Binary | 0.6862 | 0.67 ms |
+| Exp-E | PatchCore | Baseline | 0.9508 | 12.74 ms |
+| Exp-F | PatchCore | CLAHE | **0.9567** | 12.74 ms |
 
 > 주요 지표: AUROC (임계값에 독립적인 이상탐지 평가 지표)
 > PatchCore + CLAHE 조합이 가장 높은 성능 달성 (AUROC 0.9567)
 
 ### 분석
+
 - AutoEncoder: Baseline이 가장 높고 Edge/Binary 전처리 시 성능 저하
 - PatchCore: AutoEncoder 대비 평균 15%p 이상 높은 AUROC 달성
 - CLAHE 전처리가 두 모델 모두에서 성능 향상에 기여
+- AutoEncoder(0.67ms)가 PatchCore(12.74ms)보다 약 19배 빠름
+- 성능 vs 속도 트레이드오프: 정확도 우선 시 PatchCore, 속도 우선 시 AutoEncoder
 
 ### 학습 Loss 커브
 
