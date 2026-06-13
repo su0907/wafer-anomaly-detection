@@ -11,6 +11,8 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 정상 데이터만으로 학습하여 불량 패턴을 탐지하는 비지도 이상탐지 방식을 채택하며,
 전처리 방법(CLAHE, 이진화, Canny Edge)과 모델(AutoEncoder, PatchCore)에 따른 성능 변화를 비교 실험합니다.
 
+- GitHub: [wafer-anomaly-detection](https://github.com/su0907/wafer-anomaly-detection)
+
 ## 데이터셋
 
 - 출처: [WM-811K (Kaggle)](https://www.kaggle.com/datasets/qingyi/wm811k-wafer-map)
@@ -22,15 +24,15 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 
 | 클래스 | 데이터 수 | 비율 | 용도 |
 |--------|-----------|------|------|
-| None | 785,938 | - | 학습 (10,000개 샘플링) |
-| Edge-Ring | 9,680 | - | 테스트만 |
-| Edge-Loc | 5,189 | - | 테스트만 |
-| Center | 4,294 | - | 테스트만 |
-| Loc | 3,593 | - | 테스트만 |
-| Scratch | 1,193 | - | 테스트만 |
-| Random | 866 | - | 테스트만 |
-| Donut | 555 | - | 테스트만 |
-| Near-full | 149 | - | 테스트만 |
+| None | 785,938 | 96.87% | 학습 (10,000개 샘플링) |
+| Edge-Ring | 9,680 | 1.19% | 테스트만 |
+| Edge-Loc | 5,189 | 0.64% | 테스트만 |
+| Center | 4,294 | 0.53% | 테스트만 |
+| Loc | 3,593 | 0.44% | 테스트만 |
+| Scratch | 1,193 | 0.15% | 테스트만 |
+| Random | 866 | 0.11% | 테스트만 |
+| Donut | 555 | 0.07% | 테스트만 |
+| Near-full | 149 | 0.02% | 테스트만 |
 
 ### 데이터 분할
 
@@ -105,6 +107,20 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 > 주요 지표: AUROC (임계값에 독립적인 이상탐지 평가 지표)
 > PatchCore + CLAHE 조합이 가장 높은 성능 달성 (AUROC 0.9567)
 
+### 분석
+- AutoEncoder: Baseline이 가장 높고 Edge/Binary 전처리 시 성능 저하
+- PatchCore: AutoEncoder 대비 평균 15%p 이상 높은 AUROC 달성
+- CLAHE 전처리가 두 모델 모두에서 성능 향상에 기여
+
+### 학습 Loss 커브
+
+![Loss Curves](results/loss_curves.png)
+
+### 재구성 오차 분포
+
+![Baseline](results/error_dist_baseline.png)
+![PatchCore CLAHE](results/patchcore_dist_clahe.png)
+
 ## 프로젝트 구조
 
     wafer-anomaly-detection/
@@ -128,6 +144,7 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
     │   ├── best_edge.pth
     │   └── best_binary.pth
     ├── results/
+    │   ├── loss_curves.png
     │   ├── error_dist_baseline.png
     │   ├── error_dist_clahe.png
     │   ├── error_dist_edge.png
