@@ -142,6 +142,15 @@ WM-811K 데이터셋을 활용하여 반도체 웨이퍼 맵에서 정상 웨이
 - AutoEncoder(0.67ms)가 PatchCore(12.74ms)보다 약 19배 빠름
 - 성능 vs 속도 트레이드오프: 정확도 우선 시 PatchCore, 속도 우선 시 AutoEncoder
 
+
+
+
+
+
+
+
+
+
 ### 학습 Loss 커브
 
 <img src="results/loss_curves.png" width="700">
